@@ -39,9 +39,9 @@ export default function Home() {
 
   if (isError) {
     return (
-      <div className="rounded border bg-white dark:bg-slate-900 p-4">
-        <div className="font-semibold mb-2">Unable to load mains</div>
-        <div className="text-sm text-red-600">{error?.message || 'Unknown error'}</div>
+      <div className="rounded border bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-4">
+        <div className="font-semibold mb-1">Unable to load content.</div>
+        <div className="text-sm">{error?.message || 'Unknown error'}</div>
       </div>
     );
   }
