@@ -6,10 +6,18 @@ import { Button } from '../../components/UI/Button.jsx';
 import { Skeleton } from '../../components/UI/Skeleton.jsx';
 
 export default function Home() {
-  const { data, isLoading } = useQuery({
+  const {
+    data: mains = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['home-mains'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('mains').select('*').order('order_index', { ascending: true });
+      const { data, error } = await supabase
+        .from('mains')
+        .select('*')
+        .order('order_index', { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
@@ -29,11 +37,20 @@ export default function Home() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="rounded border bg-white dark:bg-slate-900 p-4">
+        <div className="font-semibold mb-2">Unable to load mains</div>
+        <div className="text-sm text-red-600">{error?.message || 'Unknown error'}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Welcome</h1>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data.map((m) => (
+        {mains.map((m) => (
           <div key={m.id} className="rounded-lg border bg-white dark:bg-slate-900 p-4 flex flex-col">
             {m.image_url && (
               <img src={m.image_url} alt={m.title} className="rounded mb-3 h-40 object-cover" loading="lazy" />
