@@ -1,14 +1,4 @@
-/**
-Notes on hierarchy:
-- Mains: top-level topics
-- Classes: nested under a Main or another Class (arbitrary depth)
-- Notes: belong either directly to a Main OR to a Class
-
-This TOC fetches all mains/classes/notes and builds a tree on the client. For very large datasets,
-consider server-side pagination or on-demand fetching.
-*/
-
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, PlusCircle, FileText } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase.js';
