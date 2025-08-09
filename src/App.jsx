@@ -9,35 +9,38 @@ import NotePage from './pages/user/NotePage.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute.jsx';
 import { AdminRoute } from './components/Auth/AdminRoute.jsx';
+import ErrorBoundary from './components/Layout/ErrorBoundary.jsx';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/auth/login" element={<Login />} />
-      <Route path="/auth/signup" element={<Signup />} />
-      <Route path="/auth/reset" element={<ResetPassword />} />
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/signup" element={<Signup />} />
+        <Route path="/auth/reset" element={<ResetPassword />} />
 
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Home />} />
-        <Route path="note/:noteId" element={<NotePage />} />
         <Route
-          path="admin"
+          path="/"
           element={
-            <AdminRoute>
-              <Dashboard />
-            </AdminRoute>
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
           }
-        />
-      </Route>
+        >
+          <Route index element={<Home />} />
+          <Route path="note/:noteId" element={<NotePage />} />
+          <Route
+            path="admin"
+            element={
+              <AdminRoute>
+                <Dashboard />
+              </AdminRoute>
+            }
+          />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
