@@ -71,7 +71,6 @@ export function AuthProvider({ children }) {
 
       if (insertRes.error) {
         console.warn('[auth] profile insert failed', insertRes.error.message);
-        // keep profile null; role will default to 'user'
       } else {
         setProfile(insertRes.data);
       }
