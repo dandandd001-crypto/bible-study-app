@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LogOut, LayoutDashboard, Library } from 'lucide-react';
-import { useAuth } from '../..//components/Auth/AuthProvider.jsx';
+import { useAuth } from '../Auth/AuthProvider.jsx';
 import DarkModeToggle from './DarkModeToggle.jsx';
 import GlobalSearch from './GlobalSearch.jsx';
 import { Button } from '../UI/Button.jsx';
