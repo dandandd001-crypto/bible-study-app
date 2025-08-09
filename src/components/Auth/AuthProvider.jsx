@@ -17,7 +17,9 @@ export function AuthProvider({ children }) {
       const {
         data: { session: currentSession },
       } = await supabase.auth.getSession();
+
       if (!mounted) return;
+      console.log('[auth] init session', currentSession);
 
       setSession(currentSession);
       if (currentSession?.user) {
@@ -30,7 +32,8 @@ export function AuthProvider({ children }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('[auth] event', event, newSession);
       setSession(newSession);
       if (newSession?.user) {
         await loadProfile(newSession.user.id);
@@ -49,18 +52,29 @@ export function AuthProvider({ children }) {
   }, [queryClient]);
 
   async function loadProfile(userId) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, role, display_name')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, role, display_name')
+        .eq('id', userId)
+        .single();
 
-    if (!error) setProfile(data);
-    else {
-      // If profile missing, create a default one
-      await supabase.from('profiles').insert({ id: userId, role: 'user' }).select().single().then((res) => {
-        if (!res.error) setProfile(res.data);
-      });
+      if (error) throw error;
+      setProfile(data);
+    } catch (err) {
+      console.warn('[auth] profile load failed, attempting insert...', err?.message);
+      const insertRes = await supabase
+        .from('profiles')
+        .insert({ id: userId, role: 'user' })
+        .select()
+        .single();
+
+      if (insertRes.error) {
+        console.warn('[auth] profile insert failed', insertRes.error.message);
+        // keep profile null; role will default to 'user'
+      } else {
+        setProfile(insertRes.data);
+      }
     }
   }
 
