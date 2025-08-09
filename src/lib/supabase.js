@@ -54,23 +54,28 @@ create table public.notes (
 
 -- Storage: create bucket "images" (public or with RLS as needed)
 
--- Basic RLS policies (example - fine-tune as needed):
+-- RLS examples:
 alter table public.profiles enable row level security;
-create policy "profiles are viewable by users" on public.profiles for select using (true);
-create policy "users can insert their own profile" on public.profiles for insert with check (auth.uid() = id);
-create policy "users can update their own profile" on public.profiles for update using (auth.uid() = id);
+create policy if not exists "profiles_select" on public.profiles for select using (true);
+create policy if not exists "profiles_insert_self" on public.profiles for insert with check (auth.uid() = id);
+create policy if not exists "profiles_update_self" on public.profiles for update using (auth.uid() = id);
 
 alter table public.mains enable row level security;
-create policy "read mains" on public.mains for select using (true);
-create policy "admin write mains" on public.mains for all using (exists(select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+create policy if not exists "mains_select" on public.mains for select using (true);
 
 alter table public.classes enable row level security;
-create policy "read classes" on public.classes for select using (true);
-create policy "admin write classes" on public.classes for all using (exists(select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+create policy if not exists "classes_select" on public.classes for select using (true);
 
 alter table public.notes enable row level security;
-create policy "read notes" on public.notes for select using (true);
-create policy "admin write notes" on public.notes for all using (exists(select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+create policy if not exists "notes_select" on public.notes for select using (true);
+
+-- Optional: admin writes
+create policy if not exists "mains_admin_write" on public.mains
+for all using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+create policy if not exists "classes_admin_write" on public.classes
+for all using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+create policy if not exists "notes_admin_write" on public.notes
+for all using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
 */
 
 import { createClient } from '@supabase/supabase-js';
