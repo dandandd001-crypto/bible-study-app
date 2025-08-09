@@ -65,7 +65,7 @@ function TreeItem({ label, children, defaultOpen = false, actions }) {
 }
 
 export default function TOC() {
-  const { data, isLoading } = useContent();
+  const { data, isLoading, isError, error } = useContent();
   const { role } = useAuth();
   const location = useLocation();
   const focusMainId = location.state?.focusMainId;
@@ -129,6 +129,15 @@ export default function TOC() {
         <Skeleton className="h-5 w-48" />
         <Skeleton className="h-5 w-64" />
         <Skeleton className="h-5 w-44" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-3 rounded border bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+        <div className="font-semibold mb-1">Unable to load table of contents.</div>
+        <div className="text-sm">{error?.message || 'Unknown error'}</div>
       </div>
     );
   }
