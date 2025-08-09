@@ -11,6 +11,7 @@ export default function GlobalSearch() {
   const [results, setResults] = useState({ mains: [], classes: [], notes: [] });
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [err, setErr] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,24 +32,37 @@ export default function GlobalSearch() {
     async function runSearch() {
       if (!q.trim()) {
         setResults({ mains: [], classes: [], notes: [] });
+        setErr('');
         return;
       }
       setLoading(true);
+      setErr('');
 
-      const [mains, classes, notes] = await Promise.all([
-        supabase.from('mains').select('id, title, description').ilike('title', `%${q}%`),
-        supabase.from('classes').select('id, title, description').ilike('title', `%${q}%`),
-        supabase.from('notes').select('id, title, body').or(`title.ilike.%${q}%,body.ilike.%${q}%`),
-      ]);
+      try {
+        const [mains, classes, notes] = await Promise.all([
+          supabase.from('mains').select('id, title, description').ilike('title', `%${q}%`),
+          supabase.from('classes').select('id, title, description').ilike('title', `%${q}%`),
+          supabase.from('notes').select('id, title, body').or(`title.ilike.%${q}%,body.ilike.%${q}%`),
+        ]);
 
-      if (!active) return;
+        if (!active) return;
 
-      setResults({
-        mains: mains.data ?? [],
-        classes: classes.data ?? [],
-        notes: notes.data ?? [],
-      });
-      setLoading(false);
+        if (mains.error || classes.error || notes.error) {
+          throw new Error(
+            mains.error?.message || classes.error?.message || notes.error?.message || 'Search failed'
+          );
+        }
+
+        setResults({
+          mains: mains.data ?? [],
+          classes: classes.data ?? [],
+          notes: notes.data ?? [],
+        });
+      } catch (e) {
+        setErr(e.message || 'Search failed');
+      } finally {
+        if (active) setLoading(false);
+      }
     }
 
     const t = setTimeout(runSearch, 250);
@@ -64,7 +78,6 @@ export default function GlobalSearch() {
   );
 
   function onOpenMain(mainId) {
-    // Navigate to home with a state to highlight/open in TOC
     navigate('/', { state: { focusMainId: mainId } });
     setOpen(false);
   }
@@ -113,11 +126,17 @@ export default function GlobalSearch() {
             </>
           )}
 
-          {!loading && !hasAny && q.trim() && (
+          {err && (
+            <div className="text-sm text-red-600 dark:text-red-300">
+              {err}
+            </div>
+          )}
+
+          {!loading && !err && !hasAny && q.trim() && (
             <div className="text-sm text-slate-500">No results for "{q}".</div>
           )}
 
-          {!loading && results.mains.length > 0 && (
+          {!loading && !err && results.mains.length > 0 && (
             <div>
               <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Mains</div>
               <ul className="space-y-1">
@@ -140,7 +159,7 @@ export default function GlobalSearch() {
             </div>
           )}
 
-          {!loading && results.classes.length > 0 && (
+          {!loading && !err && results.classes.length > 0 && (
             <div>
               <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Classes</div>
               <ul className="space-y-1">
@@ -158,7 +177,7 @@ export default function GlobalSearch() {
             </div>
           )}
 
-          {!loading && results.notes.length > 0 && (
+          {!loading && !err && results.notes.length > 0 && (
             <div>
               <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Notes</div>
               <ul className="space-y-1">
