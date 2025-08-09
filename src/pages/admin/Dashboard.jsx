@@ -55,7 +55,7 @@ function reorderList(items, id, direction) {
 }
 
 export default function Dashboard() {
-  const { data, isLoading } = useAllContent();
+  const { data, isLoading, isError, error } = useAllContent();
   const [activeTab, setActiveTab] = useState('mains'); // mains | classes | notes
   const [search, setSearch] = useState('');
 
@@ -68,6 +68,15 @@ export default function Dashboard() {
       <div className="grid md:grid-cols-2 gap-4">
         <Skeleton className="h-72" />
         <Skeleton className="h-72" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded border bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-4">
+        <div className="font-semibold mb-1">Unable to load admin data.</div>
+        <div className="text-sm">{error?.message || 'Unknown error'}</div>
       </div>
     );
   }
@@ -152,7 +161,6 @@ function MainsManager({ mains, search }) {
   const reorderMutation = useMutation({
     mutationFn: async (newOrder) => {
       const updates = newOrder.map((m, idx) => ({ id: m.id, order_index: idx + 1 }));
-      // Batch update
       const promises = updates.map((u) => supabase.from('mains').update({ order_index: u.order_index }).eq('id', u.id));
       const results = await Promise.all(promises);
       const errs = results.find((r) => r.error);
